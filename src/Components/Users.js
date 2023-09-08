@@ -193,7 +193,7 @@ const Users = () => {
                         variant="h6"
                         component="h2"
                       >
-                        USerName
+                        UserName
                       </Typography>
                       <input
                         type="text"
