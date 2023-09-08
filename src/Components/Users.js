@@ -1,12 +1,32 @@
 import { Typography, Grid, Box } from "@mui/material";
 import React, { useEffect, useState } from "react";
 import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
 import Button from "@mui/material/Button";
 import axios from "axios";
 import Modal from "@mui/material/Modal";
 import "../App.css";
+import { margin, styled } from "@mui/system";
+
+const useStyles = styled((theme) => ({
+  responsiveModalContent: {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    width: "80%",
+    maxWidth: "600px",
+    bgcolor: "background.paper",
+    padding: theme.spacing(4),
+    backgroundColor: "white",
+    border: "2px solid #000",
+    boxShadow: theme.shadows[5],
+    [theme.breakpoints.down("sm")]: {
+      width: "90%",
+    },
+  },
+}));
+
 const initialValues = {
   firstName: "",
   lastName: "",
@@ -21,7 +41,7 @@ const style = {
   top: "50%",
   left: "50%",
   transform: "translate(-50%, -50%)",
-  width: 600,
+  width: 300,
   bgcolor: "background.paper",
   border: "2px solid #000",
   boxShadow: 24,
@@ -34,6 +54,8 @@ const Users = () => {
   const [id, setId] = useState(0);
   const [fromdata, setFormData] = useState(initialValues);
   const [currentindex, setCurrentindex] = useState(null);
+
+  const classes = useStyles();
 
   const handleChange = (index) => {
     setId(index);
@@ -53,6 +75,13 @@ const Users = () => {
   const handleClose = () => setOpen(false);
 
   const handleonChange = (data) => {
+    const phoneNumberPattern = /^\d{12}$/;
+
+    if (!phoneNumberPattern.test(fromdata.phoneNumber)) {
+      alert("Phone number must have exactly 12 digits.");
+      return;
+    }
+
     axios
       .put(`http://43.205.31.129:4040/api/admin/user/update`, {
         firstName: fromdata.firstName,
@@ -155,12 +184,15 @@ const Users = () => {
                 <Box sx={style}>
                   {user[id] && (
                     <>
+                      <Typography variant="h6" component="h2">
+                        Edit users details{" "}
+                      </Typography>
                       <Typography
                         id="modal-modal-title"
                         variant="h6"
                         component="h2"
                       >
-                        FirstName
+                        First Name
                       </Typography>
                       <input
                         type="text"
@@ -178,7 +210,7 @@ const Users = () => {
                         variant="h6"
                         component="h2"
                       >
-                        LastName
+                        Last Name
                       </Typography>
                       <input
                         type="text"
@@ -193,7 +225,7 @@ const Users = () => {
                         variant="h6"
                         component="h2"
                       >
-                        UserName
+                        User Name
                       </Typography>
                       <input
                         type="text"
@@ -208,11 +240,12 @@ const Users = () => {
                         variant="h6"
                         component="h2"
                       >
-                        PhoneNumber
+                        Phone Number
                       </Typography>
                       <input
                         type="text"
                         class="input-field"
+                        maxLength={12}
                         value={fromdata.phoneNumber}
                         onChange={(e) =>
                           setFormData({
@@ -226,10 +259,10 @@ const Users = () => {
                         variant="h6"
                         component="h2"
                       >
-                        DateofBirth
+                        Date-of-Birth
                       </Typography>
                       <input
-                        type="text"
+                        type="date"
                         class="input-field"
                         value={fromdata.dob}
                         onChange={(e) =>
@@ -251,17 +284,10 @@ const Users = () => {
                           setFormData({ ...fromdata, email: e.target.value })
                         }
                       />
-                      {/* <Typography id="modal-modal-title" variant="h6" component="h2">
-                ReferCode
-              </Typography> */}
-                      {/* <input
-                type="text"
-                value={fromdata.referCode}
-                onChange={(e) =>
-                  setFormData({ ...fromdata, referCode: e.target.value })
-                } */}
+                      <br />
 
                       <Button
+                        sx={{ margin: "20px", alignItems: "center" }}
                         variant="contained"
                         onClick={() => handleonChange(data)}
                       >

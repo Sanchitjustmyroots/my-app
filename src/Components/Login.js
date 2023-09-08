@@ -1,10 +1,13 @@
-import { React, useState } from "react";
+import React, { useState } from 'react';
+
+
 import { Button } from "@mui/material";
 import axios from "axios";
 import "../App.css";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Modal from "@mui/material/Modal";
+import { red } from "@mui/material/colors";
 
 const initialValues = {
   firstname: "",
@@ -30,27 +33,89 @@ const Signup = ({ history }) => {
   const [formData, setFormData] = useState(initialValues);
   const [isOpen, setOpen] = useState(false);
   const [isOtp, setOtp] = useState("");
+  const [otpError, setoptError] = useState(null);
+  const [formError, setformError] = useState(null);
+  const [isLogin, setIsLogin] = useState(true); 
+  const[email,setEmail]=useState();
+
 
   const handleClose = () => setOpen(false);
 
+  const toggleSignUpForm = () => {
+    setIsLogin(!isLogin);
+    
+  }; 
+
+  const onLogin = (e) => {
+    e.preventDefault();
+    axios
+      .post(`
+      http://43.205.31.129:4040/api/web/auth/signin`, {
+        phoneNumber: formData.phone,
+        
+       
+      })
+      .then((res) => {
+        console.log(res);
+
+     
+       
+
+        if (res.data.success === true) {
+
+
+          setOpen(true) 
+
+           setEmail(res.data.data.email)
+
+          // isState(res.data.data.email)  
+        
+     
+        } else {
+          // Handle login failure, display an error message
+          setformError(res.data.message);
+          setFormData(initialValues);
+          // You may also want to clear the form fields here
+          // setFormData(initialValues);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        
+      });
+  };
+
+
+  
+
   const onOtp = (e) => {
     e.preventDefault();
+    console.log(email);
     axios
       .post(`http://43.205.31.129:4040/api/web/auth/verifyMobileOtp`, {
         firstName: formData.firstname,
         lastName: formData.lastname,
         phoneNumber: formData.phone,
-        email: formData.email,
+        email: email,
         otp: isOtp,
         city: formData.location,
       })
       .then((res) => {
-        if (isOtp.length > 0) {
-          history.push("/usersdetail");
+        // console.log("form", res);
+        if (res.data.success === true) {
+          if (isOtp.length > 0) { 
+            
+            history.push("/usersdetail");
+           
+          }
+        } else {
+          setoptError(res.data.error[0]);
         }
         console.log(res);
       });
   };
+
+  
 
   const onSubmit = (e) => {
     e.preventDefault();
@@ -61,19 +126,19 @@ const Signup = ({ history }) => {
         phoneNumber: formData.phone,
         // address: formData.address,
         location: formData.location,
-        // city: formData.city,
-        // contact_name: formData.bname,
-        // contact_email: formData.bemail,
-        // brand_contact_number: formData.bphone,
+      
         email: formData.email,
       })
       .then((res) => {
-       // setFormData(initialValues);
+        console.log(res);
+        // setFormData(initialValues);
 
         if (res.data.success === true) {
-          setOpen(true);
 
-          // setFormData(initialValues)
+          setOpen(true); 
+
+         
+                  // setFormData(initialValues)
           // setFormData({
           //   ...formData,
           //   [name]: value,
@@ -81,8 +146,8 @@ const Signup = ({ history }) => {
 
           // alert(res.data.message[0]);
         } else {
-          alert(res.data.message[0]);
-          setFormData(initialValues);
+          setformError(res.data.message);
+          
         }
       })
       .catch((err) => {
@@ -97,16 +162,19 @@ const Signup = ({ history }) => {
         <div class="card">
           <div class="card-image">
             <h2 class="card-heading">
-              Sign Up
-              <small>Let us create your account</small>
-            </h2>
+              {isLogin ? "login" : " Sign up Let us create your account"}
+             
+            </h2> 
           </div>
-          <form onSubmit={onSubmit} class="card-form">
+          <form onSubmit={isLogin ? onLogin : onSubmit} class="card-form"> 
+          
+           
             <div class="input">
-              <input
+             {!isLogin &&  <input
                 type="text"
                 id="firstname"
                 class="input-field"
+                placeholder='firstname'
                 onChange={(e) => {
                   setFormData((prev) => ({
                     ...prev,
@@ -114,13 +182,16 @@ const Signup = ({ history }) => {
                   }));
                 }}
                 required
-              />
-              <label class="input-label">First Name</label>
+              /> 
+             }
+              {/* <label class="input-label">First Name</label>  */}
             </div>
+            
             <div class="input">
-              <input
+            {!isLogin && <input
                 type="text"
                 id="lastname"
+                placeholder='lastname'
                 class="input-field"
                 onChange={(e) => {
                   setFormData((prev) => ({
@@ -130,12 +201,14 @@ const Signup = ({ history }) => {
                 }}
                 required
               />
-              <label class="input-label">Last Name</label>
+            }
+              {/* <label class="input-label">Last Name</label> */}
             </div>
             <div class="input">
-              <input
+            {!isLogin && <input
                 type="text"
                 class="input-field"
+                placeholder='email'
                 id="email"
                 onChange={(e) => {
                   setFormData((prev) => ({
@@ -146,14 +219,17 @@ const Signup = ({ history }) => {
                 //value="vlockn@gmail.com"
                 required
               />
-              <label class="input-label">Email</label>
+            }
+              {/* <label class="input-label">Email</label> */}
             </div>
+            
             <div class="input">
               <input
                 type="text"
                 id="phoneNumber"
                 class="input-field"
-                maxLength="12"
+                placeholder='91 phone'
+                maxLength={12}
                 onChange={(e) => {
                   setFormData((prev) => ({
                     ...prev,
@@ -162,13 +238,16 @@ const Signup = ({ history }) => {
                 }}
                 required
               />
-              <label class="input-label">Phone</label>
-            </div>
+             
+              {/* <label class="input-label">Phone</label> */}
+            </div> 
+            {!setIsLogin && <input type='text' placeholder='enter your otp '/> }
 
             <div class="input">
-              <input
+            {!isLogin && <input
                 type="text"
                 id="location"
+                placeholder='location'
                 class="input-field"
                 onChange={(e) => {
                   setFormData((prev) => ({
@@ -178,13 +257,11 @@ const Signup = ({ history }) => {
                 }}
                 required
               />
-              <label class="input-label">locaton</label>
+            }
+              {/* <label class="input-label">locaton</label> */}
             </div>
             <div class="action">
-              {/* <button  onClick={submitForm}
-            type="submit"  class="action-button">Sign Up</button> */}
-
-              {/* <Button onClick={submitForm} type="submit" class = "action-button"> Sign Up </Button> */}
+            
 
               <Button
                 onClick={() => {
@@ -193,18 +270,21 @@ const Signup = ({ history }) => {
                 type="submit"
                 variant="contained"
               >
-                Sign Up{" "}
+                {isLogin ? "login" : " Sign up"}
               </Button>
+                           
+              {formError && <Typography color={red}>{formError}</Typography>}
             </div>
           </form>
           <div class="card-info">
-            <p>
-              By signing up you are agreeing to our{" "}
-              <a href="#">Terms and Conditions</a>
+            <p style={{ cursor: "pointer", color:"red", }} onClick={toggleSignUpForm}>
+              {" "}
+              {isLogin
+                ? "New to my-app?  Sign-up Now"
+                : " Allready registered login  now "}
             </p>
           </div>
         </div>
-      
 
         <Modal
           open={isOpen}
@@ -217,12 +297,14 @@ const Signup = ({ history }) => {
               Enter Your Otp
             </Typography>
             <input
-              type="text" 
+              type="text"
               maxLength="4"
               onChange={(e) => setOtp(e.target.value)}
               placeholder="Enter your Otp"
             />
+
             <Button onClick={onOtp}> Submit Otp </Button>
+            {otpError && <Typography sx={{color:"red"}}>{otpError}</Typography>}
           </Box>
         </Modal>
       </div>
